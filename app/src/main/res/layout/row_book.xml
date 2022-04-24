@@ -42,8 +42,9 @@
         <ImageView
             android:id="@+id/imgBookmark"
             android:src="@drawable/ic_bookmark"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/checkComplete"
             app:layout_constraintBottom_toBottomOf="@id/checkComplete"/>

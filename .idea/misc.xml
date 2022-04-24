@@ -3,8 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android Kotlin/MVVM_Room_Flow_Coroutines_DataStore/app/src/main/res/layout/activity_main.xml" value="0.36666666666666664" />
         <entry key="..\:/Android Kotlin/MVVM_Room_Flow_Coroutines_DataStore/app/src/main/res/layout/fragment_book_list.xml" value="0.35260416666666666" />
+        <entry key="..\:/Android Kotlin/MVVM_Room_Flow_Coroutines_DataStore/app/src/main/res/layout/fragment_insert.xml" value="0.36666666666666664" />
         <entry key="..\:/Android Kotlin/MVVM_Room_Flow_Coroutines_DataStore/app/src/main/res/layout/row_book.xml" value="0.36666666666666664" />
+        <entry key="..\:/Android Kotlin/MVVM_Room_Flow_Coroutines_DataStore/app/src/main/res/menu/menu_item.xml" value="0.36666666666666664" />
       </map>
     </option>
   </component>
