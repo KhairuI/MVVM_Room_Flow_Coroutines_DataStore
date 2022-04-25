@@ -9,5 +9,20 @@
         android:id="@+id/bookListFragment"
         android:name="com.example.mvvm_room_flow_coroutines_datastore.fragments.BookListFragment"
         android:label="fragment_book_list"
-        tools:layout="@layout/fragment_book_list" />
+        tools:layout="@layout/fragment_book_list" >
+        <action
+            android:id="@+id/action_bookListFragment_to_insertFragment"
+            app:destination="@id/insertFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/insertFragment"
+        android:name="com.example.mvvm_room_flow_coroutines_datastore.fragments.InsertFragment"
+        android:label="fragment_insert"
+        tools:layout="@layout/fragment_insert" >
+        <argument
+            android:name="book"
+            app:argType="com.example.mvvm_room_flow_coroutines_datastore.model.ModelBook"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
 </navigation>

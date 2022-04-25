@@ -2,7 +2,6 @@ package com.example.mvvm_room_flow_coroutines_datastore.db
 
 import androidx.room.*
 import com.example.mvvm_room_flow_coroutines_datastore.model.ModelBook
-import com.example.mvvm_room_flow_coroutines_datastore.viewModel.SortOrder
 import kotlinx.coroutines.flow.Flow
 
 @Dao
