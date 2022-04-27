@@ -21,7 +21,7 @@ abstract class BookDatabase:RoomDatabase() {
         ): RoomDatabase.Callback(){
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
-            val dao= bookDatabase.get().bookDao()
+         /*   val dao= bookDatabase.get().bookDao()
             applicationScope.launch {
                 dao.insert(ModelBook("The Great Gatsby"))
                 dao.insert(ModelBook("Ulysses"))
@@ -29,7 +29,7 @@ abstract class BookDatabase:RoomDatabase() {
                 dao.insert(ModelBook("The Great Gatsby"))
                 dao.insert(ModelBook("Ulysses", completed = true))
                 dao.insert(ModelBook("The Great Gatsby"))
-            }
+            }*/
         }
     }
 }

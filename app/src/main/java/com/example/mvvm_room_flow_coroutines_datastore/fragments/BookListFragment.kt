@@ -8,8 +8,10 @@ import android.view.MenuItem
 import androidx.fragment.app.Fragment
 import android.view.View
 import androidx.appcompat.widget.SearchView
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mvvm_room_flow_coroutines_datastore.R
@@ -17,6 +19,7 @@ import com.example.mvvm_room_flow_coroutines_datastore.adapter.BookAdapter
 import com.example.mvvm_room_flow_coroutines_datastore.databinding.FragmentBookListBinding
 import com.example.mvvm_room_flow_coroutines_datastore.db.SortOrder
 import com.example.mvvm_room_flow_coroutines_datastore.model.ModelBook
+import com.example.mvvm_room_flow_coroutines_datastore.utils.exhaustive
 import com.example.mvvm_room_flow_coroutines_datastore.utils.onQueryTextChanged
 import com.example.mvvm_room_flow_coroutines_datastore.viewModel.BookListViewModel
 import com.google.android.material.snackbar.Snackbar
@@ -31,6 +34,7 @@ class BookListFragment : Fragment(R.layout.fragment_book_list) {
     private lateinit var binding: FragmentBookListBinding
     private val bookListViewModel: BookListViewModel by viewModels()
     private lateinit var bookAdapter: BookAdapter
+    private lateinit var searchView: SearchView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -38,10 +42,16 @@ class BookListFragment : Fragment(R.layout.fragment_book_list) {
 
         // all observe method
         observeBookList()
-        observeTaskEvents()
+        observeBookListEvents()
 
         // All click
         clickEvents()
+
+        // set fragment result listener
+        setFragmentResultListener("add_edit_request"){ _,bundle->
+            val result= bundle.getInt("add_edit_result")
+            bookListViewModel.addOrEditResult(result)
+        }
 
         setHasOptionsMenu(true)
 
@@ -54,16 +64,31 @@ class BookListFragment : Fragment(R.layout.fragment_book_list) {
     }
 
     @SuppressLint("ShowToast")
-    private fun observeTaskEvents() {
+    private fun observeBookListEvents() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            bookListViewModel.taskEvent.collect { event->
+            bookListViewModel.bookListEvent.collect { event->
                 when(event){
-                    is BookListViewModel.TasksEvent.ShowUndoDeleteTaskMessage ->{
+                    is BookListViewModel.BookListEvent.ShowUndoDeleteTaskMessage ->{
                         Snackbar.make(requireView(),"Book deleted", Snackbar.LENGTH_LONG).setAction("UNDO"){
                             bookListViewModel.undoDeleteClick(event.book)
                         }.show()
                     }
-                }
+                    is BookListViewModel.BookListEvent.NavigateToEditBook -> {
+                        val action= BookListFragmentDirections.actionBookListFragmentToInsertFragment(event.book.copy(important = event.isImportant),"Edit Book")
+                        findNavController().navigate(action)
+                    }
+                    is BookListViewModel.BookListEvent.NavigateToInsertBook -> {
+                        val action= BookListFragmentDirections.actionBookListFragmentToInsertFragment(null,"Add Book")
+                        findNavController().navigate(action)
+                    }
+                    is BookListViewModel.BookListEvent.ShowBookSaveMessage -> {
+                        Snackbar.make(requireView(),event.message, Snackbar.LENGTH_SHORT).show()
+                    }
+                    BookListViewModel.BookListEvent.NavigateToDeleteAllCompletedScreen -> {
+                        val action= BookListFragmentDirections.actionGlobalDeleteDialogue()
+                        findNavController().navigate(action)
+                    }
+                }.exhaustive
             }
         }
     }
@@ -76,8 +101,8 @@ class BookListFragment : Fragment(R.layout.fragment_book_list) {
 
     private fun setData(bookList: MutableList<ModelBook>?) {
         bookAdapter= BookAdapter(object : BookAdapter.OnItemClickListener{
-            override fun onItemClick(book: ModelBook) {
-                bookListViewModel.bookSelected(book)
+            override fun onItemClick(book: ModelBook, isImportant: Boolean) {
+                bookListViewModel.bookSelected(book,isImportant)
             }
 
             override fun onCheckBoxClick(book: ModelBook, isChecked: Boolean) {
@@ -114,7 +139,14 @@ class BookListFragment : Fragment(R.layout.fragment_book_list) {
         inflater.inflate(R.menu.menu_item,menu)
 
         val searchItem= menu.findItem(R.id.action_search)
-        val searchView= searchItem.actionView as SearchView
+        searchView= searchItem.actionView as SearchView
+
+        val pendingQuery= bookListViewModel.searchQuery.value
+        if(pendingQuery.isNotEmpty()){
+            searchItem.expandActionView()
+            searchView.setQuery(pendingQuery, false)
+        }
+
         searchView.onQueryTextChanged {
             bookListViewModel.searchQuery.value= it
         }
@@ -143,11 +175,16 @@ class BookListFragment : Fragment(R.layout.fragment_book_list) {
                 true
             }
             R.id.action_delete_all_completed_tasks -> {
-
+                bookListViewModel.onDeleteAllCompleted()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        searchView.setOnQueryTextListener(null)
     }
 
 }

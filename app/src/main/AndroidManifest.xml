@@ -12,6 +12,7 @@
         android:theme="@style/Theme.MVVM_Room_Flow_Coroutines_DataStore">
         <activity
             android:name=".activity.MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

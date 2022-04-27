@@ -27,5 +27,8 @@ interface BookDAO {
             SortOrder.BY_DATE -> getAllBookSortedByDate(query, hideCompleted)
             SortOrder.BY_NAME -> getAllBookSortedByName(query, hideCompleted)
         }
+
+    @Query("DELETE FROM book_table WHERE completed = 1")
+    suspend fun deleteAllCompletedBook()
 }
 

@@ -24,7 +24,7 @@ class BookAdapter(private val listener:OnItemClickListener): ListAdapter<ModelBo
             imgBookmark.isVisible= book.important
 
             rowLayout.setOnClickListener {
-                listener.onItemClick(book)
+                listener.onItemClick(book,book.important)
             }
             checkComplete.setOnClickListener {
                 listener.onCheckBoxClick(book,checkComplete.isChecked)
@@ -36,7 +36,7 @@ class BookAdapter(private val listener:OnItemClickListener): ListAdapter<ModelBo
     class BookViewHolder(val binding: RowBookBinding) : RecyclerView.ViewHolder(binding.root)
 
     interface OnItemClickListener{
-        fun onItemClick(book:ModelBook)
+        fun onItemClick(book:ModelBook,isImportant:Boolean)
         fun onCheckBoxClick(book:ModelBook,isChecked:Boolean)
     }
 

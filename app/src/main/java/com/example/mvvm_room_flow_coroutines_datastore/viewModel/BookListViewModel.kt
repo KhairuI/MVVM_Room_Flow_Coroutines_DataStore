@@ -1,6 +1,8 @@
 package com.example.mvvm_room_flow_coroutines_datastore.viewModel
 
 import androidx.lifecycle.*
+import com.example.mvvm_room_flow_coroutines_datastore.activity.ADD_BOOK_RESULT
+import com.example.mvvm_room_flow_coroutines_datastore.activity.EDIT_BOOK_RESULT
 import com.example.mvvm_room_flow_coroutines_datastore.db.BookDAO
 import com.example.mvvm_room_flow_coroutines_datastore.db.PreferenceManager
 import com.example.mvvm_room_flow_coroutines_datastore.db.SortOrder
@@ -17,24 +19,23 @@ import javax.inject.Inject
 @HiltViewModel
 class BookListViewModel @Inject constructor(
     private val bookDao:BookDAO,
-    private val preferenceManager: PreferenceManager,
-    private val state: SavedStateHandle
+    private val preferenceManager: PreferenceManager
 ):ViewModel() {
 
-    val searchQuery= state.getLiveData("searchQuery","")
-    //val searchQuery= MutableStateFlow("")
+    //val searchQuery= state.getLiveData("searchQuery","")
+    val searchQuery= MutableStateFlow("")
     /*val sortOrder= MutableStateFlow(SortOrder.BY_DATE)
     val hideCompleted= MutableStateFlow(false)*/
 
     val preferenceFlow= preferenceManager.preferenceFlow
 
 
-    private val tasksEventChannel = Channel<TasksEvent>()
-    val taskEvent= tasksEventChannel.receiveAsFlow()
+    private val bookListEventChannel = Channel<BookListEvent>()
+    val bookListEvent= bookListEventChannel.receiveAsFlow()
 
 
     private val bookFlow= combine(
-        searchQuery.asFlow(),
+        searchQuery,
         preferenceFlow
     ){ query, filterPreference ->
         Pair(query,filterPreference)
@@ -48,8 +49,8 @@ class BookListViewModel @Inject constructor(
 
     val book= bookFlow.asLiveData()
 
-    fun bookSelected(book:ModelBook)= viewModelScope.launch {
-        tasksEventChannel.send(TasksEvent.NavigateToEditBook(book))
+    fun bookSelected(book:ModelBook, isImportant:Boolean)= viewModelScope.launch {
+        bookListEventChannel.send(BookListEvent.NavigateToEditBook(book,isImportant))
     }
 
     fun bookCheckedUpdated(book:ModelBook, isChecked:Boolean)= viewModelScope.launch {
@@ -58,7 +59,7 @@ class BookListViewModel @Inject constructor(
 
     fun bookDelete(book:ModelBook)= viewModelScope.launch {
         bookDao.delete(book)
-        tasksEventChannel.send(TasksEvent.ShowUndoDeleteTaskMessage(book))
+        bookListEventChannel.send(BookListEvent.ShowUndoDeleteTaskMessage(book))
     }
 
     fun undoDeleteClick(book:ModelBook)= viewModelScope.launch {
@@ -66,13 +67,30 @@ class BookListViewModel @Inject constructor(
     }
 
     fun insertNewBook()= viewModelScope.launch {
-        tasksEventChannel.send(TasksEvent.NavigateToInsertBook)
+        bookListEventChannel.send(BookListEvent.NavigateToInsertBook)
     }
 
-    sealed class TasksEvent {
-        object NavigateToInsertBook: TasksEvent()
-        data class NavigateToEditBook(val book: ModelBook) : TasksEvent()
-        data class ShowUndoDeleteTaskMessage(val book: ModelBook) : TasksEvent()
+    fun addOrEditResult(result: Int){
+        when(result){
+            ADD_BOOK_RESULT -> showBookSaveMessage("Book added")
+            EDIT_BOOK_RESULT -> showBookSaveMessage("Book updated")
+        }
+    }
+
+    private fun showBookSaveMessage(message: String) = viewModelScope.launch {
+        bookListEventChannel.send(BookListEvent.ShowBookSaveMessage(message))
+    }
+
+    fun onDeleteAllCompleted()= viewModelScope.launch {
+        bookListEventChannel.send(BookListEvent.NavigateToDeleteAllCompletedScreen)
+    }
+
+    sealed class BookListEvent {
+        object NavigateToInsertBook: BookListEvent()
+        object NavigateToDeleteAllCompletedScreen: BookListEvent()
+        data class NavigateToEditBook(val book: ModelBook,val isImportant: Boolean) : BookListEvent()
+        data class ShowUndoDeleteTaskMessage(val book: ModelBook) : BookListEvent()
+        data class ShowBookSaveMessage(val message: String) : BookListEvent()
     }
 }
 
